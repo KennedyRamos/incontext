@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { words, wordTags, tags } from "./schema";
+import { words, wordTags, tags } from "./schema.js";
 
 export const wordTagsRelations = relations(wordTags, ({one}) => ({
 	word: one(words, {
