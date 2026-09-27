@@ -32,3 +32,5 @@ export const listQuerySchema = z.object({
 
 export type CreateWordInput = z.infer<typeof createWordSchema>
 export type ListQuery = z.infer<typeof listQuerySchema>
+
+export const idParamSchema = z.string().uuid()
