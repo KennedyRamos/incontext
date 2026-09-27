@@ -116,3 +116,77 @@ export async function createWord(userId: string, input: CreateWordInput) {
 
   return { ...created, tags: tagNames }
 }
+
+export async function getWord(userId: string, id: string) {
+  const [word] = await db
+    .select()
+    .from(words)
+    .where(and(eq(words.id, id), eq(words.userId, userId)))
+
+  if (!word) {
+    return null
+  }
+
+  const tagRows = await db
+    .select({ name: tags.name })
+    .from(wordTags)
+    .innerJoin(tags, eq(tags.id, wordTags.tagId))
+    .where(eq(wordTags.wordId, id))
+
+  return { ...word, tags: tagRows.map((row) => row.name) }
+}
+
+export async function updateWord(userId: string, id: string, input: CreateWordInput) {
+  const existing = await getWord(userId, id)
+
+  if (!existing) {
+    return null
+  }
+
+  const tagNames = [...new Set(input.tags)]
+  let tagIds: string[] = []
+
+  if (tagNames.length > 0) {
+    await db
+      .insert(tags)
+      .values(tagNames.map((name) => ({ userId, name })))
+      .onConflictDoNothing({ target: [tags.userId, tags.name] })
+
+    const tagRows = await db
+      .select({ id: tags.id })
+      .from(tags)
+      .where(and(eq(tags.userId, userId), inArray(tags.name, tagNames)))
+
+    tagIds = tagRows.map((row) => row.id)
+  }
+
+  const updateWordQuery = db
+    .update(words)
+    .set({
+      term: input.term,
+      translation: input.translation,
+      exampleSentence: input.exampleSentence,
+      status: input.status,
+    })
+    .where(and(eq(words.id, id), eq(words.userId, userId)))
+    .returning()
+
+  const [[updated]] = await db.batch([
+    updateWordQuery,
+    db.delete(wordTags).where(eq(wordTags.wordId, id)),
+    ...(tagIds.length > 0
+      ? [db.insert(wordTags).values(tagIds.map((tagId) => ({ wordId: id, tagId })))]
+      : []),
+  ])
+
+  return { ...updated, tags: tagNames }
+}
+
+export async function deleteWord(userId: string, id: string) {
+  const [deleted] = await db
+    .delete(words)
+    .where(and(eq(words.id, id), eq(words.userId, userId)))
+    .returning({ id: words.id })
+
+  return deleted ?? null
+}
