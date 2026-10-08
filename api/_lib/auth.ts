@@ -22,8 +22,11 @@ export async function requireUserId(req: VercelRequest): Promise<string> {
     throw new Error('CLERK_SECRET_KEY não está definida')
   }
 
-  try {
-    const payload = await verifyToken(token, { secretKey })
+      try {
+    const payload = await verifyToken(token, {
+      secretKey,
+      authorizedParties: ['http://localhost:3000'],
+    })
     return payload.sub
   } catch {
     throw new UnauthorizedError('Token inválido')
