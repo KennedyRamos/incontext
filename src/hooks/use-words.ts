@@ -1,8 +1,23 @@
 import { useCallback, useEffect, useState } from "react"
 import { useApiClient } from "@/lib/api-client"
-import type { Word } from "@/types/word"
+import type { LearningStatus, Word } from "@/types/word"
 
-export function useWords() {
+export interface WordFilters {
+  q?: string
+  status?: LearningStatus
+  tag?: string
+}
+
+function buildQueryString(filters: WordFilters) {
+  const params = new URLSearchParams()
+  if (filters.q) params.set("q", filters.q)
+  if (filters.status) params.set("status", filters.status)
+  if (filters.tag) params.set("tag", filters.tag)
+  const query = params.toString()
+  return query ? `?${query}` : ""
+}
+
+export function useWords(filters: WordFilters = {}) {
   const apiFetch = useApiClient()
   const [words, setWords] = useState<Word[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -15,7 +30,7 @@ export function useWords() {
     async function run() {
       setIsLoading(true)
       try {
-        const data = await apiFetch<Word[]>("/words")
+        const data = await apiFetch<Word[]>(`/words${buildQueryString(filters)}`)
         if (!active) return
         setWords(data)
         setError(null)
@@ -27,12 +42,13 @@ export function useWords() {
       }
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- busca de dados na montagem/refetch, padrão recomendado pela doc do React
     run()
 
     return () => {
       active = false
     }
-  }, [apiFetch, version])
+  }, [apiFetch, filters.q, filters.status, filters.tag, version])
 
   const refetch = useCallback(() => {
     setVersion((v) => v + 1)

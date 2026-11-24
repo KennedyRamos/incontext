@@ -1,14 +1,20 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
+import { useState } from "react"
 import { WordFormDialog } from "@/components/word-form-dialog"
 import { WordList } from "@/components/word-list"
+import { WordSearch } from "@/components/word-search"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { useWords } from "@/hooks/use-words"
 
 function Dashboard() {
-  const { words, isLoading, error, refetch } = useWords()
+  const [search, setSearch] = useState("")
+  const debouncedSearch = useDebouncedValue(search, 300)
+  const { words, isLoading, error, refetch } = useWords({ q: debouncedSearch })
 
   return (
     <div className="flex w-full max-w-xl flex-col gap-4">
-      <div className="flex justify-end">
+      <div className="flex gap-2">
+        <WordSearch value={search} onChange={setSearch} />
         <WordFormDialog onCreated={refetch} />
       </div>
       <WordList words={words} isLoading={isLoading} error={error} />
