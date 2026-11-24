@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge"
+import { DeleteWordButton } from "@/components/delete-word-button"
 import { WordFormDialog } from "@/components/word-form-dialog"
 import type { Word } from "@/types/word"
 
@@ -37,6 +38,7 @@ export function WordList({ words, isLoading, error, onChanged }: WordListProps) 
             <div className="flex items-center gap-2">
               <Badge variant="secondary">{statusLabel[word.status]}</Badge>
               <WordFormDialog word={word} onSaved={onChanged} />
+              <DeleteWordButton wordId={word.id} wordTerm={word.term} onDeleted={onChanged} />
             </div>
           </div>
           <p className="text-sm text-muted-foreground">{word.translation}</p>
