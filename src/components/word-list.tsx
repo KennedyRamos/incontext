@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge"
+import { WordFormDialog } from "@/components/word-form-dialog"
 import type { Word } from "@/types/word"
 
 const statusLabel: Record<string, string> = {
@@ -11,9 +12,10 @@ interface WordListProps {
   words: Word[]
   isLoading: boolean
   error: string | null
+  onChanged: () => void
 }
 
-export function WordList({ words, isLoading, error }: WordListProps) {
+export function WordList({ words, isLoading, error, onChanged }: WordListProps) {
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">Carregando...</p>
   }
@@ -32,7 +34,10 @@ export function WordList({ words, isLoading, error }: WordListProps) {
         <li key={word.id} className="rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <span className="font-medium">{word.term}</span>
-            <Badge variant="secondary">{statusLabel[word.status]}</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{statusLabel[word.status]}</Badge>
+              <WordFormDialog word={word} onSaved={onChanged} />
+            </div>
           </div>
           <p className="text-sm text-muted-foreground">{word.translation}</p>
           {word.exampleSentence && (

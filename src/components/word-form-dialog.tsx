@@ -19,28 +19,54 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useCreateWord } from "@/hooks/use-create-word"
-import type { LearningStatus } from "@/types/word"
+import { useUpdateWord } from "@/hooks/use-update-word"
+import type { LearningStatus, Word } from "@/types/word"
 
 interface WordFormDialogProps {
-  onCreated: () => void
+  word?: Word
+  onSaved: () => void
 }
 
-export function WordFormDialog({ onCreated }: WordFormDialogProps) {
-  const { createWord, isSubmitting, error } = useCreateWord()
+export function WordFormDialog({ word, onSaved }: WordFormDialogProps) {
   const [open, setOpen] = useState(false)
-  const [term, setTerm] = useState("")
-  const [translation, setTranslation] = useState("")
-  const [exampleSentence, setExampleSentence] = useState("")
-  const [status, setStatus] = useState<LearningStatus>("new")
-  const [tagsInput, setTagsInput] = useState("")
 
-  function resetForm() {
-    setTerm("")
-    setTranslation("")
-    setExampleSentence("")
-    setStatus("new")
-    setTagsInput("")
-  }
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant={word ? "outline" : "default"} size={word ? "sm" : "default"}>
+          {word ? "Editar" : "Nova palavra"}
+        </Button>
+      </DialogTrigger>
+      {open && (
+        <WordFormFields
+          key={word?.id ?? "create"}
+          word={word}
+          onClose={() => setOpen(false)}
+          onSaved={onSaved}
+        />
+      )}
+    </Dialog>
+  )
+}
+
+interface WordFormFieldsProps {
+  word?: Word
+  onClose: () => void
+  onSaved: () => void
+}
+
+function WordFormFields({ word, onClose, onSaved }: WordFormFieldsProps) {
+  const isEditing = Boolean(word)
+  const { createWord, isSubmitting: isCreating, error: createError } = useCreateWord()
+  const { updateWord, isSubmitting: isUpdating, error: updateError } = useUpdateWord()
+  const isSubmitting = isCreating || isUpdating
+  const error = createError || updateError
+
+  const [term, setTerm] = useState(word?.term ?? "")
+  const [translation, setTranslation] = useState(word?.translation ?? "")
+  const [exampleSentence, setExampleSentence] = useState(word?.exampleSentence ?? "")
+  const [status, setStatus] = useState<LearningStatus>(word?.status ?? "new")
+  const [tagsInput, setTagsInput] = useState(word?.tags.join(", ") ?? "")
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -50,88 +76,84 @@ export function WordFormDialog({ onCreated }: WordFormDialogProps) {
       .map((tag) => tag.trim())
       .filter(Boolean)
 
-    const word = await createWord({
+    const input = {
       term,
       translation,
       exampleSentence: exampleSentence || null,
       status,
       tags,
-    })
+    }
 
-    if (word) {
-      resetForm()
-      setOpen(false)
-      onCreated()
+    const result = isEditing && word ? await updateWord(word.id, input) : await createWord(input)
+
+    if (result) {
+      onClose()
+      onSaved()
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Nova palavra</Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Nova palavra</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="term">Palavra em inglês</Label>
-            <Input id="term" value={term} onChange={(e) => setTerm(e.target.value)} required />
-          </div>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>{isEditing ? "Editar palavra" : "Nova palavra"}</DialogTitle>
+      </DialogHeader>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="term">Palavra em inglês</Label>
+          <Input id="term" value={term} onChange={(e) => setTerm(e.target.value)} required />
+        </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="translation">Tradução / significado</Label>
-            <Input
-              id="translation"
-              value={translation}
-              onChange={(e) => setTranslation(e.target.value)}
-              required
-            />
-          </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="translation">Tradução / significado</Label>
+          <Input
+            id="translation"
+            value={translation}
+            onChange={(e) => setTranslation(e.target.value)}
+            required
+          />
+        </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="example">Frase de exemplo</Label>
-            <Textarea
-              id="example"
-              value={exampleSentence}
-              onChange={(e) => setExampleSentence(e.target.value)}
-            />
-          </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="example">Frase de exemplo</Label>
+          <Textarea
+            id="example"
+            value={exampleSentence}
+            onChange={(e) => setExampleSentence(e.target.value)}
+          />
+        </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="status">Status</Label>
-            <Select value={status} onValueChange={(value) => setStatus(value as LearningStatus)}>
-              <SelectTrigger id="status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new">Nova</SelectItem>
-                <SelectItem value="learning">Em aprendizado</SelectItem>
-                <SelectItem value="mastered">Dominada</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="status">Status</Label>
+          <Select value={status} onValueChange={(value) => setStatus(value as LearningStatus)}>
+            <SelectTrigger id="status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new">Nova</SelectItem>
+              <SelectItem value="learning">Em aprendizado</SelectItem>
+              <SelectItem value="mastered">Dominada</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="tags">Tags (separadas por vírgula)</Label>
-            <Input
-              id="tags"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="Trabalho, Verbos"
-            />
-          </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="tags">Tags (separadas por vírgula)</Label>
+          <Input
+            id="tags"
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            placeholder="Trabalho, Verbos"
+          />
+        </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Salvando..." : "Salvar"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <DialogFooter>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Salvando..." : "Salvar"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
   )
 }

@@ -15,9 +15,9 @@ function Dashboard() {
     <div className="flex w-full max-w-xl flex-col gap-4">
       <div className="flex gap-2">
         <WordSearch value={search} onChange={setSearch} />
-        <WordFormDialog onCreated={refetch} />
+        <WordFormDialog onSaved={refetch} />
       </div>
-      <WordList words={words} isLoading={isLoading} error={error} />
+      <WordList words={words} isLoading={isLoading} error={error} onChanged={refetch} />
     </div>
   )
 }
