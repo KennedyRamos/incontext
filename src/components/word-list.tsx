@@ -1,12 +1,8 @@
 import { Badge } from "@/components/ui/badge"
+import { DeleteWordButton } from "@/components/delete-word-button"
 import { WordFormDialog } from "@/components/word-form-dialog"
+import { WordStatusSelect } from "@/components/word-status-select"
 import type { Word } from "@/types/word"
-
-const statusLabel: Record<string, string> = {
-  new: "Nova",
-  learning: "Em aprendizado",
-  mastered: "Dominada",
-}
 
 interface WordListProps {
   words: Word[]
@@ -35,8 +31,9 @@ export function WordList({ words, isLoading, error, onChanged }: WordListProps) 
           <div className="flex items-center justify-between">
             <span className="font-medium">{word.term}</span>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">{statusLabel[word.status]}</Badge>
+              <WordStatusSelect word={word} onChanged={onChanged} />
               <WordFormDialog word={word} onSaved={onChanged} />
+              <DeleteWordButton wordId={word.id} wordTerm={word.term} onDeleted={onChanged} />
             </div>
           </div>
           <p className="text-sm text-muted-foreground">{word.translation}</p>
