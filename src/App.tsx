@@ -1,5 +1,20 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
+import { WordFormDialog } from "@/components/word-form-dialog"
 import { WordList } from "@/components/word-list"
+import { useWords } from "@/hooks/use-words"
+
+function Dashboard() {
+  const { words, isLoading, error, refetch } = useWords()
+
+  return (
+    <div className="flex w-full max-w-xl flex-col gap-4">
+      <div className="flex justify-end">
+        <WordFormDialog onCreated={refetch} />
+      </div>
+      <WordList words={words} isLoading={isLoading} error={error} />
+    </div>
+  )
+}
 
 export default function App() {
   return (
@@ -14,7 +29,7 @@ export default function App() {
         <SignInButton />
       </SignedOut>
       <SignedIn>
-        <WordList />
+        <Dashboard />
       </SignedIn>
     </div>
   )

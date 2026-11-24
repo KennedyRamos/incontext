@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import { useWords } from "@/hooks/use-words"
+import type { Word } from "@/types/word"
 
 const statusLabel: Record<string, string> = {
   new: "Nova",
@@ -7,9 +7,13 @@ const statusLabel: Record<string, string> = {
   mastered: "Dominada",
 }
 
-export function WordList() {
-  const { words, isLoading, error } = useWords()
+interface WordListProps {
+  words: Word[]
+  isLoading: boolean
+  error: string | null
+}
 
+export function WordList({ words, isLoading, error }: WordListProps) {
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">Carregando...</p>
   }
@@ -23,7 +27,7 @@ export function WordList() {
   }
 
   return (
-    <ul className="flex w-full max-w-xl flex-col gap-3">
+    <ul className="flex w-full flex-col gap-3">
       {words.map((word) => (
         <li key={word.id} className="rounded-lg border p-4">
           <div className="flex items-center justify-between">
