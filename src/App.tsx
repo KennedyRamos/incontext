@@ -1,5 +1,6 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
 import { useState } from "react"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { WordFormDialog } from "@/components/word-form-dialog"
 import { WordList } from "@/components/word-list"
 import { WordSearch } from "@/components/word-search"
@@ -27,9 +28,12 @@ export default function App() {
     <div className="flex min-h-screen flex-col items-center gap-6 p-8">
       <div className="flex w-full max-w-xl items-center justify-between">
         <h1 className="text-2xl font-semibold">incontext</h1>
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
       </div>
       <SignedOut>
         <SignInButton />
