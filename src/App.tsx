@@ -13,7 +13,7 @@ function Dashboard() {
   const { words, isLoading, error, refetch } = useWords({ q: debouncedSearch })
 
   return (
-    <div className="flex w-full max-w-xl flex-col gap-4">
+    <div className="flex w-full max-w-2xl flex-col gap-4">
       <div className="flex gap-2">
         <WordSearch value={search} onChange={setSearch} />
         <WordFormDialog onSaved={refetch} />
@@ -26,7 +26,7 @@ function Dashboard() {
 export default function App() {
   return (
     <div className="flex min-h-screen flex-col items-center gap-6 p-8">
-      <div className="flex w-full max-w-xl items-center justify-between">
+      <div className="flex w-full max-w-2xl items-center justify-between">
         <h1 className="text-2xl font-semibold">incontext</h1>
         <div className="flex items-center gap-2">
           <ThemeToggle />
