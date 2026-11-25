@@ -1,24 +1,47 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
 import { useState } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { WordFilters } from "@/components/word-filters"
 import { WordFormDialog } from "@/components/word-form-dialog"
 import { WordList } from "@/components/word-list"
 import { WordSearch } from "@/components/word-search"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import { useTags } from "@/hooks/use-tags"
 import { useWords } from "@/hooks/use-words"
+import type { LearningStatus } from "@/types/word"
 
 function Dashboard() {
   const [search, setSearch] = useState("")
+  const [status, setStatus] = useState<LearningStatus | undefined>()
+  const [tag, setTag] = useState<string | undefined>()
   const debouncedSearch = useDebouncedValue(search, 300)
-  const { words, isLoading, error, refetch } = useWords({ q: debouncedSearch })
+  const {
+    words,
+    isLoading,
+    error,
+    refetch: refetchWords,
+  } = useWords({ q: debouncedSearch, status, tag })
+  const { tags, refetch: refetchTags } = useTags()
+
+  function handleChanged() {
+    refetchWords()
+    refetchTags()
+  }
 
   return (
     <div className="flex w-full max-w-2xl flex-col gap-4">
       <div className="flex gap-2">
         <WordSearch value={search} onChange={setSearch} />
-        <WordFormDialog onSaved={refetch} />
+        <WordFormDialog onSaved={handleChanged} />
       </div>
-      <WordList words={words} isLoading={isLoading} error={error} onChanged={refetch} />
+      <WordFilters
+        status={status}
+        onStatusChange={setStatus}
+        tag={tag}
+        onTagChange={setTag}
+        tags={tags}
+      />
+      <WordList words={words} isLoading={isLoading} error={error} onChanged={handleChanged} />
     </div>
   )
 }
