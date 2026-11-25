@@ -25,15 +25,28 @@ import type { LearningStatus, Word } from "@/types/word"
 interface WordFormDialogProps {
   word?: Word
   onSaved: () => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function WordFormDialog({ word, onSaved }: WordFormDialogProps) {
-  const [open, setOpen] = useState(false)
+export function WordFormDialog({
+  word,
+  onSaved,
+  open: controlledOpen,
+  onOpenChange,
+}: WordFormDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen ?? internalOpen
+  const setOpen = onOpenChange ?? setInternalOpen
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={word ? "outline" : "default"} size={word ? "sm" : "default"}>
+        <Button
+          variant={word ? "outline" : "default"}
+          size={word ? "sm" : "default"}
+          title={word ? undefined : "Atalho: N"}
+        >
           {word ? "Editar" : "Nova palavra"}
         </Button>
       </DialogTrigger>

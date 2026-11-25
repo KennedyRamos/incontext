@@ -52,7 +52,7 @@ export function WordFilters({
         value={tag ?? ALL}
         onValueChange={(value) => onTagChange(value === ALL ? undefined : value)}
       >
-        <SelectTrigger size="sm" className="w-[180px]">
+        <SelectTrigger size="sm" className="w-45">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

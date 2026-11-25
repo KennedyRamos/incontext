@@ -1,11 +1,12 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { WordFilters } from "@/components/word-filters"
 import { WordFormDialog } from "@/components/word-form-dialog"
 import { WordList } from "@/components/word-list"
 import { WordSearch } from "@/components/word-search"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import { useShortcuts } from "@/hooks/use-shortcuts"
 import { useTags } from "@/hooks/use-tags"
 import { useWords } from "@/hooks/use-words"
 import type { LearningStatus } from "@/types/word"
@@ -14,6 +15,7 @@ function Dashboard() {
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState<LearningStatus | undefined>()
   const [tag, setTag] = useState<string | undefined>()
+  const [newWordOpen, setNewWordOpen] = useState(false)
   const debouncedSearch = useDebouncedValue(search, 300)
   const {
     words,
@@ -22,6 +24,11 @@ function Dashboard() {
     refetch: refetchWords,
   } = useWords({ q: debouncedSearch, status, tag })
   const { tags, refetch: refetchTags } = useTags()
+
+  const openNewWord = useCallback(() => setNewWordOpen(true), [])
+  const focusSearch = useCallback(() => document.getElementById("word-search")?.focus(), [])
+
+  useShortcuts({ onNewWord: openNewWord, onFocusSearch: focusSearch })
 
   function handleChanged() {
     refetchWords()
@@ -32,7 +39,11 @@ function Dashboard() {
     <div className="flex w-full max-w-2xl flex-col gap-4">
       <div className="flex gap-2">
         <WordSearch value={search} onChange={setSearch} />
-        <WordFormDialog onSaved={handleChanged} />
+        <WordFormDialog
+          open={newWordOpen}
+          onOpenChange={setNewWordOpen}
+          onSaved={handleChanged}
+        />
       </div>
       <WordFilters
         status={status}
