@@ -8,6 +8,13 @@ export class UnauthorizedError extends Error {
   }
 }
 
+function getAuthorizedParties() {
+  return (process.env.AUTHORIZED_PARTIES ?? 'http://localhost:3000')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+}
+
 export async function requireUserId(req: VercelRequest): Promise<string> {
   const header = req.headers.authorization
   const token = header?.startsWith('Bearer ') ? header.slice(7) : null
@@ -22,10 +29,10 @@ export async function requireUserId(req: VercelRequest): Promise<string> {
     throw new Error('CLERK_SECRET_KEY não está definida')
   }
 
-      try {
+  try {
     const payload = await verifyToken(token, {
       secretKey,
-      authorizedParties: ['http://localhost:3000'],
+      authorizedParties: getAuthorizedParties(),
     })
     return payload.sub
   } catch {
